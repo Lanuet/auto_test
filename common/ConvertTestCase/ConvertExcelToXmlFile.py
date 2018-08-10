@@ -1,55 +1,74 @@
+import codecs
 from typing import Any
 
 import xlrd
 from lxml import etree
 
+start_row = 0
+end_row = 113
+sheet_id = 0
+title_col = 1
+preconditon_col = 2
+action_col = 3
+expected_result_col = 4
+priority_col = 6
+excutedtype_col = 7
+
 
 def convertToXml(excelFileName, xmlFileName, directoryInputFile, sheetId):
-    # root = etree.Element('testcases')
-    # root.set('name', 'Network')
-    # tree = etree.ElementTree(root)
-    # name = etree.Element('nodes')
-    # root.append(name)
+    xml_file = directoryInputFile + xmlFileName
+    # file = codecs.open(xml_file,"w")
+    # Open ExcelFile
     wb = xlrd.open_workbook(excelFileName)
-
+    # Read by sheet index
     sh = wb.sheet_by_index(sheetId)
 
     # Lấy dữ liệu cột Title
-    nameList = sh.col_values(colx=1, start_rowx=0, end_rowx=113)
-    # Lấy dữ liệu cột Pre-condition
-    preConditionList = sh.col_values(colx=2, start_rowx=0, end_rowx=113)
+    name_list = sh.col_values(title_col, start_row, end_row)
+    # Lấy dữ liệu cột Pre-preconditon_
+    pre_condition_list = sh.col_values(preconditon_col, start_row, end_row)
     # Lấy dữ liệu cột Action
-    actionList = sh.col_values(colx=3, start_rowx=0, end_rowx=113)
+    action_list = sh.col_values(action_col, start_row, end_row)
     # Lấy dữ liệu cột Expected Result
-    expectedResultList = sh.col_values(colx=4, start_rowx=0, end_rowx=113)
+    expected_result_list = sh.col_values(expected_result_col, start_row, end_row)
     # Lấy dữ liệu cột Excuted Type
-    excutedTypeList = sh.col_values(colx=7, start_rowx=0, end_rowx=113)
+    excuted_type_list = sh.col_values(excutedtype_col, start_row, end_row)
     # Lấy dữ liệu cột Priority
-    priorityList = sh.col_values(colx=6, start_rowx=0, end_rowx=113)
+    priority_list = sh.col_values(priority_col, start_row, end_row)
 
-    numCases = []
-    for i in range(len(actionList)):
-        if (actionList[i].startswith("1.")):
-            numCases.append(i)
+    num_cases = []
+    for i in range(len(action_list)):
+        if action_list[i].startswith("1."):
+            num_cases.append(i)
 
     root = etree.Element('testcases')
-    for i in range(len(numCases)):
-        index = numCases[i]
-        name = nameList[index]
+    for i in range(len(num_cases)):
+        index = num_cases[i]
+        step_num = 1
+        name = name_list[index]
         print(index)
         testcase = etree.SubElement(root, 'testcase')
         testcase.set('name', name)
         testcase.set('internalid', '')
 
-        data = {
-            'node_order': '',
-            'externalid': '',
-            # ...
-        }
+        # data = {
+        #     'node_order': '',
+        #     'externalid': '',
+        #     'version': '',
+        #     'summary': '',
+        #     'preconditions': pre_condition_list[index],
+        #     'execution_type': excuted_type_list[index],
+        #     'importance': priority_list[index],
+        #     'steps': steps_data
+        # }
+        # steps_data = {
+        #     'step_number': step_num,
+        #     'actions': ''
 
-        for k, v in data.items():
-            n = etree.SubElement(testcase, k)
-            n.text = etree.CDATA(v)
+        # }
+        # for k, v in data.items():
+        #     n = etree.SubElement(testcase, k)
+        #     n.text = etree.CDATA(v)
 
         node_order = etree.SubElement(testcase, 'node_order')
         node_order.text = etree.CDATA('')
@@ -57,97 +76,62 @@ def convertToXml(excelFileName, xmlFileName, directoryInputFile, sheetId):
         externalid = etree.SubElement(testcase, 'externalid')
         externalid.text = etree.CDATA('')
 
-        version = etree.SubElement(testcase ,'version')
+        version = etree.SubElement(testcase, 'version')
         version.text = etree.CDATA('')
 
-        summary = etree.SubElement(testcase,'summary')
+        summary = etree.SubElement(testcase, 'summary')
         summary.text = etree.CDATA('')
 
-        preconditions = etree.SubElement(testcase,'preconditions')
-        preconditions.text = etree.CDATA(preConditionList[index])
+        preconditions = etree.SubElement(testcase, 'preconditions')
+        preconditions.text = etree.CDATA(pre_condition_list[index])
 
-        execution_type = etree.SubElement(testcase,'execution_type')
-        execution_type.text = etree.CDATA(excutedTypeList[index])
+        execution_type = etree.SubElement(testcase, 'execution_type')
+        execution_type.text = etree.CDATA(excuted_type_list[index])
 
         importance = etree.SubElement(testcase, 'importance')
-        importance.text = etree.CDATA(priorityList[index])
+        importance.text = etree.CDATA(priority_list[index])
 
         steps = etree.SubElement(testcase, 'steps')
-        stepNum = 1
-        if (i < len(numCases) - 1):
-            TestCaseFormat.createSteps(actionList, expectedResultList, excutedTypeList, steps, stepNum, index, numCases[i+1])
-            # for j in range(index, numCases[i+1]):
-            #     step = etree.SubElement(steps, 'step')
-            #     step_number =  etree.SubElement(step, 'step_number')
-            #     step_number.text = etree.CDATA(str(stepNum))
-            #     actions = etree.SubElement(step, 'actions')
-            #     actions.text = etree.CDATA(actionList[j])
-            #     expectedresults = etree.SubElement(step, 'expectedresults')
-            #     expectedresults.text = etree.CDATA(expectedResultList[j])
-            #     execution_type = etree.SubElement(step, 'execution_type')
-            #     execution_type.text = etree.CDATA(excutedTypeList[j])
-            #     stepNum +=1
+
+        if i < len(num_cases) - 1:
+            create_steps(action_list, expected_result_list, excuted_type_list, steps, step_num, index, num_cases[i + 1])
         else:
-            TestCaseFormat.createSteps(actionList, expectedResultList, excutedTypeList, steps,stepNum, index, len(actionList) )
-            # for j in range (index, len(actionList)):
-            #     step = etree.SubElement(steps, 'step')
-            #     step_number = etree.SubElement(step, 'step_number')
-            #     step_number.text = etree.CDATA(str(stepNum))
-            #     actions = etree.SubElement(step, 'actions')
-            #     actions.text = etree.CDATA(actionList[j])
-            #     expectedresults = etree.SubElement(step, 'expectedresults')
-            #     expectedresults.text = etree.CDATA(expectedResultList[j])
-            #     execution_type = etree.SubElement(step, 'execution_type')
-            #     execution_type.text = etree.CDATA(excutedTypeList[j])
-            #     stepNum += 1
-    print(etree.tostring(root))
+            create_steps(action_list, expected_result_list, excuted_type_list, steps, step_num, index, len(action_list))
+    # Write to file
+    tree = etree.ElementTree(root)
+    tree.write(xml_file)
 
 
-# for row in range(1, sh.nrows):
-#     val = sh.row_values(row)
-#
-#     element = etree.SubElement(name, 'node')
-#     element.set('id', str(val[0]))
-#     element.set('x', str(val[1]))
-#     element.set('y', str(val[2]))
-# print(etree.tostring(root, pretty_print=True))
-# xml = open(xmlFileName, "w")
-# xml.write(etree.tostring(root, pretty_print=True))
+def create_steps(action_list, expected_result_list, excuted_type_list, steps, step_num, start_index, end_index):
+    """
 
-class TestCaseFormat:
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.node_oder = etree.Element('node_order')
-        self.node_oder = etree.CDATA
-        self.externalid = etree.Element('externalid')
-        self.externalid = etree.CDATA
-
-    def __set_node_order__(self, value: str) -> None:
-        self.node_oder.text = etree.CDATA(value)
-
-    @staticmethod
-    def createSteps(actionList, expectedResultList,excutedTypeList, steps, stepNum, startIndex, endIndex):
-        for j in range(startIndex, endIndex):
-            step = etree.SubElement(steps, 'step')
-            step_number = etree.SubElement(step, 'step_number')
-            step_number.text = etree.CDATA(str(stepNum))
-            actions = etree.SubElement(step, 'actions')
-            actions.text = etree.CDATA(actionList[j])
-            expectedresults = etree.SubElement(step, 'expectedresults')
-            expectedresults.text = etree.CDATA(expectedResultList[j])
-            execution_type = etree.SubElement(step, 'execution_type')
-            execution_type.text = etree.CDATA(excutedTypeList[j])
-            stepNum += 1
+    :param action_list: list action of each test case
+    :param expected_result_list:
+    :type excuted_type_list: object
+    :param steps:
+    :param step_num:
+    :param start_index:
+    :param end_index:
+    """
+    for j in range(start_index, end_index):
+        step = etree.SubElement(steps, 'step')
+        step_number = etree.SubElement(step, 'step_number')
+        step_number.text = etree.CDATA(str(step_number))
+        actions = etree.SubElement(step, 'actions')
+        actions.text = etree.CDATA(action_list[j])
+        expectedresults = etree.SubElement(step, 'expectedresults')
+        expectedresults.text = etree.CDATA(expected_result_list[j])
+        execution_type = etree.SubElement(step, 'execution_type')
+        execution_type.text = etree.CDATA(excuted_type_list[j])
+        step_num += 1
 
 
 def main():
     print("Start converting....")
-    directoryInputFile = ""
-    excelFileName = "Test.xlsx"
-    xmlFileName = "test.xml"
-    sheetId = 0
-    convertToXml(excelFileName, xmlFileName, directoryInputFile, sheetId)
+    directory_input_file = "C:/Users/Lannt/Data logistic/"
+    excel_file_name = "Test.xlsx"
+    xml_file_name = "test.xml"
+    convertToXml(excel_file_name, xml_file_name, directory_input_file, sheet_id)
     print("Finished converting .....")
 
 
