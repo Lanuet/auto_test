@@ -11,6 +11,7 @@ def convertToXml(excelFileName, xmlFileName, directoryInputFile, sheetId):
     # name = etree.Element('nodes')
     # root.append(name)
     wb = xlrd.open_workbook(excelFileName)
+
     sh = wb.sheet_by_index(sheetId)
 
     # Lấy dữ liệu cột Title
@@ -39,6 +40,17 @@ def convertToXml(excelFileName, xmlFileName, directoryInputFile, sheetId):
         testcase = etree.SubElement(root, 'testcase')
         testcase.set('name', name)
         testcase.set('internalid', '')
+
+        data = {
+            'node_order': '',
+            'externalid': '',
+            # ...
+        }
+
+        for k, v in data.items():
+            n = etree.SubElement(testcase, k)
+            n.text = etree.CDATA(v)
+
         node_order = etree.SubElement(testcase, 'node_order')
         node_order.text = etree.CDATA('')
 
@@ -114,6 +126,7 @@ class TestCaseFormat:
     def __set_node_order__(self, value: str) -> None:
         self.node_oder.text = etree.CDATA(value)
 
+    @staticmethod
     def createSteps(actionList, expectedResultList,excutedTypeList, steps, stepNum, startIndex, endIndex):
         for j in range(startIndex, endIndex):
             step = etree.SubElement(steps, 'step')
